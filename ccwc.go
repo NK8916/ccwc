@@ -8,9 +8,6 @@ import (
 	"strings"
 )
 
-var fileData = ""
-var lines []string
-
 func main() {
 	args := os.Args[1:]
 	valid_map := make(map[string]bool)
@@ -37,52 +34,46 @@ func check_for_valid_args(valid_map map[string]bool, args []string) (bool, strin
 	return true, ""
 }
 
-func evaluate_file(ops []string, filepath string) string {
+func evaluate_file(ops []string, file_path string) string {
 	default_ops := []string{"-c", "-l", "-w"}
 	result := []string{}
 	if len(ops) == 0 {
 		ops = default_ops
 	}
-	file, err := os.Open(filepath)
+	file, err := os.Open(file_path)
 	if err != nil {
 		log.Fatal("Error while opening file ", err)
 	} else {
 		{
 			for _, op := range ops {
-				switch op {
-				case "-c":
+				if op == "-c" {
 					fi, err := file.Stat()
-					fmt.Println("Stats", fi, "file info", fi.Size())
 					if err != nil {
 						log.Fatal("Error while fetching file stats ", err)
 					}
 					result = append(result, strconv.Itoa(int(fi.Size())))
-				case "-l":
-					data, err := os.ReadFile(filepath)
+				} else {
+					data, err := os.ReadFile(file_path)
 					if err != nil {
 						log.Fatal("Error while reading file ", err)
 					}
 					string_data := string(data)
 					data_array := strings.Split(string_data, "\n")
-					result = append(result, strconv.Itoa(len(data_array)))
-				case "-w":
-					data, err := os.ReadFile(filepath)
-					if err != nil {
-						log.Fatal("Error while reading file ", err)
-					}
-					string_data := string(data)
-					data_array := strings.Split(string_data, "\n")
-					word_count := 0
-					for _, line := range data_array {
-						word_array := strings.Split(line, " ")
-						for _, word := range word_array {
-							if string(word) != "" && string(word) != " " {
-								word_count += 1
+					if op == "-l" {
+						result = append(result, strconv.Itoa(len(data_array)))
+					} else {
+						word_count := 0
+						for _, line := range data_array {
+							word_array := strings.Split(line, " ")
+							for _, word := range word_array {
+								if string(word) != "" && string(word) != " " {
+									word_count += 1
+								}
 							}
-						}
 
+						}
+						result = append(result, strconv.Itoa(word_count))
 					}
-					result = append(result, strconv.Itoa(word_count))
 				}
 			}
 		}
